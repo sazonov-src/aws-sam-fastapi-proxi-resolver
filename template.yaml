@@ -93,11 +93,11 @@ Resources:
       PathPart: admin
       RestApiId: !Ref ApiGateway
 
-  ApiGatewayMethodCustomerGet:
+  ApiGatewayMethodCustomer:
     Type: AWS::ApiGateway::Method
     Properties:
       AuthorizationType: NONE
-      HttpMethod: GET
+      HttpMethod: ANY
       ResourceId: !Ref ApiGatewayResourceCustomer
       RestApiId: !Ref ApiGateway
       Integration:
@@ -113,11 +113,11 @@ Resources:
           ResponseModels:
             application/json: Empty
 
-  ApiGatewayMethodAdminGet:
+  ApiGatewayMethodAdmin:
     Type: AWS::ApiGateway::Method
     Properties:
       AuthorizationType: NONE
-      HttpMethod: GET
+      HttpMethod: ANY
       ResourceId: !Ref ApiGatewayResourceAdmin
       RestApiId: !Ref ApiGateway
       Integration:
@@ -139,8 +139,8 @@ Resources:
       RestApiId: !Ref ApiGateway
       StageName: prod
     DependsOn:
-      - ApiGatewayMethodCustomerGet
-      - ApiGatewayMethodAdminGet
+      - ApiGatewayMethodCustomer
+      - ApiGatewayMethodAdmin
 
 Outputs:
 
