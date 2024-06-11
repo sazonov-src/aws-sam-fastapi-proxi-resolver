@@ -156,3 +156,26 @@ Outputs:
     Description: Admin API Endpoint
     Value: !Sub "https://${ApiGateway}.execute-api.${AWS::Region}.amazonaws.com/prod/admin/"
 
+  ApiGatewayId:
+    Description: API Gateway ID
+    Value: !Ref ApiGateway
+
+  CognitoUserPoolId:
+    Description: Cognito User Pool ID
+    Value: !Ref CognitoAuthorizerUserPool
+
+  CognitoUserPoolClientId:
+    Description: Cognito User Pool Client ID
+    Value: !Ref CognitoAuthorizerUserPoolClient
+
+  CognitoUserPoolDomain:
+    Description: Cognito User Pool Domain
+    Value: !Sub "${CognitoAuthorizerUserPoolDomain}.auth.${AWS::Region}.amazoncognito.com"
+
+  VerifiedPermissionsIdentitySourceId:
+    Description: Verified Permissions Identity Source ID
+    Value: !Ref VerifiedPermissionsIdentitySource
+
+  LambdaAuthorizerFunctionArn:
+    Description: Lambda Authorizer Function ARN
+    Value: !GetAtt LambdaAuthorizerFunction.Arn
