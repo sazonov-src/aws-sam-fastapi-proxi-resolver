@@ -11,6 +11,11 @@ Parameters:
     Type: String
     Default: ''
 
+Globals:
+  Function:
+    Runtime: python3.12
+    CodeUri: src/
+
 Resources:
   
   CognitoAuthorizerUserPool:
@@ -79,6 +84,16 @@ Resources:
     Properties:
       Name: user-pool-api
 
+  ApiGatewayCognitoAuthorizer:
+    Type: AWS::ApiGateway::Authorizer
+    Properties:
+      Name: CognitoAuthorizer
+      Type: COGNITO_USER_POOLS
+      IdentitySource: method.request.header.Authorization
+      RestApiId: !Ref ApiGateway
+      ProviderARNs:
+        - !Sub "arn:aws:cognito-idp:${AWS::Region}:${AWS::AccountId}:userpool/${CognitoAuthorizerUserPool}"
+
   ApiGatewayResourceCustomer:
     Type: AWS::ApiGateway::Resource
     Properties:
@@ -96,7 +111,8 @@ Resources:
   ApiGatewayMethodCustomer:
     Type: AWS::ApiGateway::Method
     Properties:
-      AuthorizationType: NONE
+      AuthorizationType: COGNITO_USER_POOLS
+      AuthorizerId: !Ref ApiGatewayCognitoAuthorizer
       HttpMethod: ANY
       ResourceId: !Ref ApiGatewayResourceCustomer
       RestApiId: !Ref ApiGateway
@@ -116,7 +132,8 @@ Resources:
   ApiGatewayMethodAdmin:
     Type: AWS::ApiGateway::Method
     Properties:
-      AuthorizationType: NONE
+      AuthorizationType: COGNITO_USER_POOLS
+      AuthorizerId: !Ref ApiGatewayCognitoAuthorizer
       HttpMethod: ANY
       ResourceId: !Ref ApiGatewayResourceAdmin
       RestApiId: !Ref ApiGateway
@@ -171,11 +188,3 @@ Outputs:
   CognitoUserPoolDomain:
     Description: Cognito User Pool Domain
     Value: !Sub "${CognitoAuthorizerUserPoolDomain}.auth.${AWS::Region}.amazoncognito.com"
-
-  VerifiedPermissionsIdentitySourceId:
-    Description: Verified Permissions Identity Source ID
-    Value: !Ref VerifiedPermissionsIdentitySource
-
-  LambdaAuthorizerFunctionArn:
-    Description: Lambda Authorizer Function ARN
-    Value: !GetAtt LambdaAuthorizerFunction.Arn
