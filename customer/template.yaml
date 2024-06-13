@@ -1,0 +1,65 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Serverless patterns - Cognito User Pool (uksb-1tthgi812) (tag:cognito-user-pool)
+
+Globals:
+  Function:
+    Runtime: python3.12
+    CodeUri: src/
+
+Parameters:
+  ApiGateway:
+    Type: String
+    Description: API Gateway ID
+
+  ApiGatewayCognitoAuthorizer:
+    Type: String
+    Description: API Gateway Cognito Authorizer ID
+  
+  ApiGatewayRootResourceId:
+    Type: String
+    Description: API Gateway Root Resource ID
+
+
+Resources:
+  ApiGatewayMethodCustomer:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      AuthorizationType: COGNITO_USER_POOLS
+      AuthorizerId: !Ref ApiGatewayCognitoAuthorizer
+      HttpMethod: ANY
+      ResourceId: !Ref ApiGatewayResourceCustomer
+      RestApiId: !Ref ApiGateway
+      Integration:
+        Type: MOCK
+        RequestTemplates:
+          application/json: '{"statusCode": 200}'
+        IntegrationResponses:
+          - StatusCode: 200
+            ResponseTemplates:
+              application/json: '{"message": "Customer endpoint"}'
+      MethodResponses:
+        - StatusCode: 200
+          ResponseModels:
+            application/json: Empty
+
+  ApiGatewayResourceCustomer:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      ParentId: !Ref ApiGatewayRootResourceId
+      PathPart: customer
+      RestApiId: !Ref ApiGateway
+
+  ApiGatewayDeployment:
+    Type: AWS::ApiGateway::Deployment
+    Properties:
+      RestApiId: !Ref ApiGateway
+      StageName: prod
+    DependsOn:
+      - ApiGatewayMethodCustomer
+
+
+Outputs:
+  CustomerEndpoint:
+    Description: Customer API Endpoint
+    Value: !Sub "https://${!ImportValue ApiGateway}.execute-api.${AWS::Region}.amazonaws.com/prod/customer/"
