@@ -1,10 +1,10 @@
 version = 0.1
 [default.deploy.parameters]
-stack_name = "sam-app"
+stack_name = "infrastructure"
 resolve_s3 = true
-s3_prefix = "sam-app"
+s3_prefix = "infrastructure"
 region = "eu-north-1"
 confirm_changeset = true
 capabilities = "CAPABILITY_IAM"
-parameter_overrides = "Email=\"exemple@mail.com\" CallbackUrl=\"http://localhost\""
+parameter_overrides = "CallbackUrl=\"http://localhost\""
 image_repositories = []

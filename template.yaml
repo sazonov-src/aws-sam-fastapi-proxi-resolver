@@ -3,13 +3,8 @@ Transform: AWS::Serverless-2016-10-31
 Description: Serverless patterns - Cognito User Pool (uksb-1tthgi812) (tag:cognito-user-pool)
 
 Parameters:
-  Email:
-    Type: String
-    Default: ''
-
   CallbackUrl:
     Type: String
-    Default: ''
 
 Globals:
   Function:
@@ -46,15 +41,6 @@ Resources:
       ExplicitAuthFlows:
         - ALLOW_USER_PASSWORD_AUTH
         - ALLOW_REFRESH_TOKEN_AUTH
-
-  CognitoAuthorizerUserPoolUser:
-    Type: AWS::Cognito::UserPoolUser
-    Properties: 
-      UserAttributes: 
-        - Name: email
-          Value: !Ref Email
-      Username: !Ref Email
-      UserPoolId: !Ref CognitoAuthorizerUserPool
 
   CognitoAuthorizerUserPoolResourceServer:
     Type: AWS::Cognito::UserPoolResourceServer
