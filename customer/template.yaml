@@ -7,73 +7,59 @@ Globals:
     Runtime: python3.12
     CodeUri: src/
 
+  Api:
+    Auth:
+      DefaultAuthorizer: CognitoAuthorizer
+      Authorizers: 
+        CognitoAuthorizer:
+          UserPoolArn: !Ref CognitoAuthorizerUserPoolArn
+          Identity:
+            Headers:
+              - Authorization
+    AccessLogSetting:
+      DestinationArn: !GetAtt AccessLogs.Arn
+      Format: '{ "requestId":"$context.requestId", "ip": "$context.identity.sourceIp", "requestTime":"$context.requestTime", "httpMethod":"$context.httpMethod","routeKey":"$context.routeKey", "status":"$context.status","protocol":"$context.protocol", "integrationStatus": $context.integrationStatus, "integrationLatency": $context.integrationLatency, "responseLength":"$context.responseLength" }'
+    TracingEnabled: true
+
 Parameters:
-  ApiGateway:
+  CognitoAuthorizerUserPoolArn:
     Type: String
-    Description: API Gateway ID
-
-  ApiGatewayCognitoAuthorizer:
-    Type: String
-    Description: API Gateway Cognito Authorizer ID
-  
-  ApiGatewayRootResourceId:
-    Type: String
-    Description: API Gateway Root Resource ID
-
+    Description: Cognito User Pool ARN
 
 Resources:
-  # Define the Lambda function
-  CustomerLambdaFunction:
+  CustomerFunction:
     Type: AWS::Serverless::Function
     Properties:
-      Handler: app.lambda_handler  # Update to match your actual handler
-      Runtime: python3.12
+      Handler: index.handler
+      Timeout: 10
       MemorySize: 128
-      Timeout: 30
+      Tags:
+        Stack: !Sub "${AWS::StackName}"
+      Events:
+        Customer:
+          Type: Api
+          Properties:
+            Method: any
+            Path: /customer
 
-  # Permission for API Gateway to invoke the Lambda function
-  LambdaInvokePermission:
-    Type: AWS::Lambda::Permission
+  AccessLogs:
+    Type: AWS::Logs::LogGroup
+    DependsOn: ApiLoggingRole
     Properties:
-      Action: lambda:InvokeFunction
-      FunctionName: !GetAtt CustomerLambdaFunction.Arn
-      Principal: apigateway.amazonaws.com
-      SourceArn: !Sub arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${ApiGateway}/*/*/customer
+      RetentionInDays: 30
+      LogGroupName: !Sub "/${AWS::StackName}/APIAccessCustomerLogs"
 
-  ApiGatewayMethodCustomer:
-    Type: AWS::ApiGateway::Method
+  ApiLoggingRole:
+    Type: AWS::IAM::Role
     Properties:
-      AuthorizationType: COGNITO_USER_POOLS
-      AuthorizerId: !Ref ApiGatewayCognitoAuthorizer
-      HttpMethod: ANY
-      ResourceId: !Ref ApiGatewayResourceCustomer
-      RestApiId: !Ref ApiGateway
-      Integration:
-        Type: AWS_PROXY
-        IntegrationHttpMethod: POST
-        Uri: !Sub
-          - arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${LambdaArn}/invocations
-          - LambdaArn: !GetAtt CustomerLambdaFunction.Arn
-      MethodResponses:
-        - StatusCode: 200
-
-  ApiGatewayResourceCustomer:
-    Type: AWS::ApiGateway::Resource
-    Properties:
-      ParentId: !Ref ApiGatewayRootResourceId
-      PathPart: customer
-      RestApiId: !Ref ApiGateway
-
-  ApiGatewayDeployment:
-    Type: AWS::ApiGateway::Deployment
-    Properties:
-      RestApiId: !Ref ApiGateway
-      StageName: prod
-    DependsOn:
-      - ApiGatewayMethodCustomer
-
-Outputs:
-  CustomerEndpoint:
-    Description: Customer API Endpoint
-    Value: !Sub "https://${!ImportValue ApiGateway}.execute-api.${AWS::Region}.amazonaws.com/prod/customer/"
-
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - apigateway.amazonaws.com
+            Action: "sts:AssumeRole"
+      Path: /
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AmazonAPIGatewayPushToCloudWatchLogs

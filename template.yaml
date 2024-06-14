@@ -13,6 +13,10 @@ Globals:
 
 Resources:
   
+  #################################################################
+  # Cognito User Pool ##############################################
+  # ################################################################
+
   CognitoAuthorizerUserPool:
     Type: AWS::Cognito::UserPool
     Properties: 
@@ -65,44 +69,23 @@ Resources:
       Description: "Administrators group"
       UserPoolId: !Ref CognitoAuthorizerUserPool
 
-  ApiGateway:
-    Type: AWS::ApiGateway::RestApi
-    Properties:
-      Name: user-pool-api
-
-  ApiGatewayCognitoAuthorizer:
-    Type: AWS::ApiGateway::Authorizer
-    Properties:
-      Name: CognitoAuthorizer
-      Type: COGNITO_USER_POOLS
-      IdentitySource: method.request.header.Authorization
-      RestApiId: !Ref ApiGateway
-      ProviderARNs:
-        - !Sub "arn:aws:cognito-idp:${AWS::Region}:${AWS::AccountId}:userpool/${CognitoAuthorizerUserPool}"
+#################################################################
+# Applications ###################################################
+# ################################################################
 
   CustomerApp:
     Type: AWS::Serverless::Application
     Properties:
       Location: customer/template.yaml
       Parameters:
-        ApiGateway: !Ref ApiGateway
-        ApiGatewayCognitoAuthorizer: !Ref ApiGatewayCognitoAuthorizer
-        ApiGatewayRootResourceId: !GetAtt ApiGateway.RootResourceId
-
+        CognitoAuthorizerUserPoolArn: 
+          !GetAtt CognitoAuthorizerUserPool.Arn
 
 Outputs:
 
   HostedUi:
     Description: Hosted UI
     Value: !Sub "https://${CognitoAuthorizerUserPoolDomain}.auth.${AWS::Region}.amazoncognito.com/login?client_id=${CognitoAuthorizerUserPoolClient}&response_type=token&scope=email+openid+profile&redirect_uri=${CallbackUrl}"
-
-  ApiGateway:
-    Description: API Gateway ID
-    Value: !Ref ApiGateway
-
-  ApiGatewayCognitoAuthorizer:
-    Description: API Gateway Cognito Authorizer ID
-    Value: !Ref ApiGatewayCognitoAuthorizer
 
   CognitoUserPoolId:
     Description: Cognito User Pool ID
