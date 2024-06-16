@@ -5,7 +5,7 @@ Description: Serverless patterns - Cognito User Pool (uksb-1tthgi812) (tag:cogni
 Globals:
   Function:
     Runtime: python3.12
-    CodeUri: src/
+    CodeUri: .
 
   Api:
     Auth:
@@ -30,17 +30,15 @@ Resources:
   CustomerFunction:
     Type: AWS::Serverless::Function
     Properties:
-      Handler: index.handler
+      Handler: src/index.handler
       Timeout: 10
       MemorySize: 128
-      Tags:
-        Stack: !Sub "${AWS::StackName}"
       Events:
         Customer:
           Type: Api
           Properties:
             Method: any
-            Path: /customer
+            Path: /{proxy+}
 
   AccessLogs:
     Type: AWS::Logs::LogGroup
