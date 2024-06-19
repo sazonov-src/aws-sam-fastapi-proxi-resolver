@@ -5,11 +5,12 @@ Description: Serverless patterns - Cognito User Pool (uksb-1tthgi812) (tag:cogni
 Parameters:
   CallbackUrl:
     Type: String
+    Description: Callback URL
 
 Globals:
   Function:
     Runtime: python3.12
-    CodeUri: src/
+    CodeUri: .
 
 Resources:
   
@@ -69,18 +70,6 @@ Resources:
       Description: "Administrators group"
       UserPoolId: !Ref CognitoUserPool
 
-#################################################################
-# Authorizers ###################################################
-# ################################################################
-
-  AdministratorsLambdaAuthorizer:
-    Type: AWS::Serverless::Function
-    Properties:
-      Handler: src/authorizer.handler
-      Timeout: 5
-      MemorySize: 128
-      Policies:
-        - AWSLambdaBasicExecutionRole
 
 Outputs:
 
@@ -99,8 +88,3 @@ Outputs:
   CognitoUserPoolDomain:
     Description: Cognito User Pool Domain
     Value: !Sub "${CognitoUserPoolDomain}.auth.${AWS::Region}.amazoncognito.com"
-
-  AdministratorsLambdaAuthorizer:
-    Description: Administrators Lambda Authorizer 
-    Value: !Ref AdministratorsLambdaAuthorizer
-

@@ -5,14 +5,9 @@ from mangum import Mangum
 app = FastAPI()
 
 
-@app.get("/")
+@app.get("/hello")
 def read_root():
-    return {"Hello": "World"}
-
-
-@app.get("/items/{item_id}")
-def read_item(item_id: int, q: str | None = None):
-    return {"item_id": item_id, "q": q}
+    return {"Hello": "Admin"}
 
 
 handler = Mangum(app)

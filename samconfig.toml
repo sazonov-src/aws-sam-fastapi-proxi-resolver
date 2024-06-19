@@ -1,10 +1,11 @@
 version = 0.1
 [default.deploy.parameters]
-stack_name = "infrastructure"
+stack_name = "myapp"
 resolve_s3 = true
-s3_prefix = "infrastructure"
+s3_prefix = "myapp"
 region = "eu-north-1"
 confirm_changeset = true
 capabilities = "CAPABILITY_IAM CAPABILITY_AUTO_EXPAND"
-parameter_overrides = "CallbackUrl=\"http://localhost\""
 image_repositories = []
+disable_rollback = false
+parameter_overrides = "CallbackUrl=\"http://localhost\""

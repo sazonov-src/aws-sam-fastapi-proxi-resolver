@@ -7,14 +7,10 @@ Parameters:
     Type: String
     Description: Cognito User Pool ARN
 
-  AdministratorsLambdaAuthorizer:
-    Type: String
-    Description: Administrators Lambda Authorizer
-
 Globals:
   Function:
     Runtime: python3.12
-    CodeUri: src
+    CodeUri: .
 
   Api:
     Auth:
@@ -22,12 +18,6 @@ Globals:
       Authorizers: 
         CognitoAuthorizer:
           UserPoolArn: !Sub "arn:aws:cognito-idp:${AWS::Region}:${AWS::AccountId}:userpool/${CognitoUserPool}"
-          Identity:
-            Headers:
-              - Authorization
-        LambdaAuthorizer:
-          FunctionPayloadType: TOKEN
-          FunctionArn: !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${AdministratorsLambdaAuthorizer}"
           Identity:
             Headers:
               - Authorization
