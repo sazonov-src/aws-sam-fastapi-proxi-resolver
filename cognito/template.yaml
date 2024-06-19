@@ -17,7 +17,7 @@ Resources:
   # Cognito User Pool ##############################################
   # ################################################################
 
-  CognitoAuthorizerUserPool:
+  CognitoUserPool:
     Type: AWS::Cognito::UserPool
     Properties: 
       UserPoolName: cognito-user-pool-userpool
@@ -26,7 +26,7 @@ Resources:
       AutoVerifiedAttributes:
         - email
 
-  CognitoAuthorizerUserPoolClient:
+  CognitoUserPoolClient:
     Type: AWS::Cognito::UserPoolClient
     Properties: 
       AllowedOAuthFlows: 
@@ -41,12 +41,12 @@ Resources:
       ClientName: cognito-user-pool-client
       SupportedIdentityProviders: 
         - COGNITO
-      UserPoolId: !Ref CognitoAuthorizerUserPool
+      UserPoolId: !Ref CognitoUserPool
       ExplicitAuthFlows:
         - ALLOW_USER_PASSWORD_AUTH
         - ALLOW_REFRESH_TOKEN_AUTH
 
-  CognitoAuthorizerUserPoolResourceServer:
+  CognitoUserPoolResourceServer:
     Type: AWS::Cognito::UserPoolResourceServer
     Properties: 
       Identifier: com.apigw
@@ -54,48 +54,53 @@ Resources:
       Scopes: 
         - ScopeDescription: scope_description
           ScopeName: scope_name
-      UserPoolId: !Ref CognitoAuthorizerUserPool
+      UserPoolId: !Ref CognitoUserPool
       
-  CognitoAuthorizerUserPoolDomain:
+  CognitoUserPoolDomain:
     Type: AWS::Cognito::UserPoolDomain
     Properties: 
       Domain: !Sub user-pool-domain-${AWS::AccountId}
-      UserPoolId: !Ref CognitoAuthorizerUserPool
+      UserPoolId: !Ref CognitoUserPool
 
-  CognitoAuthorizerUserPoolGroup:
+  CognitoUserPoolGroup:
     Type: AWS::Cognito::UserPoolGroup
     Properties:
       GroupName: Administrators
       Description: "Administrators group"
-      UserPoolId: !Ref CognitoAuthorizerUserPool
+      UserPoolId: !Ref CognitoUserPool
 
 #################################################################
-# Applications ###################################################
+# Authorizers ###################################################
 # ################################################################
 
-  CustomerApp:
-    Type: AWS::Serverless::Application
+  AdministratorsLambdaAuthorizer:
+    Type: AWS::Serverless::Function
     Properties:
-      Location: customer/template.yaml
-      Parameters:
-        CognitoAuthorizerUserPoolArn: 
-          !GetAtt CognitoAuthorizerUserPool.Arn
+      Handler: src/authorizer.handler
+      Timeout: 5
+      MemorySize: 128
+      Policies:
+        - AWSLambdaBasicExecutionRole
 
 Outputs:
 
   HostedUi:
     Description: Hosted UI
-    Value: !Sub "https://${CognitoAuthorizerUserPoolDomain}.auth.${AWS::Region}.amazoncognito.com/login?client_id=${CognitoAuthorizerUserPoolClient}&response_type=token&scope=email+openid+profile&redirect_uri=${CallbackUrl}"
+    Value: !Sub "https://${CognitoUserPoolDomain}.auth.${AWS::Region}.amazoncognito.com/login?client_id=${CognitoUserPoolClient}&response_type=token&scope=email+openid+profile&redirect_uri=${CallbackUrl}"
 
   CognitoUserPoolId:
     Description: Cognito User Pool ID
-    Value: !Ref CognitoAuthorizerUserPool
+    Value: !Ref CognitoUserPool
 
   CognitoUserPoolClientId:
     Description: Cognito User Pool Client ID
-    Value: !Ref CognitoAuthorizerUserPoolClient
+    Value: !Ref CognitoUserPoolClient
 
   CognitoUserPoolDomain:
     Description: Cognito User Pool Domain
-    Value: !Sub "${CognitoAuthorizerUserPoolDomain}.auth.${AWS::Region}.amazoncognito.com"
+    Value: !Sub "${CognitoUserPoolDomain}.auth.${AWS::Region}.amazoncognito.com"
+
+  AdministratorsLambdaAuthorizer:
+    Description: Administrators Lambda Authorizer 
+    Value: !Ref AdministratorsLambdaAuthorizer
 

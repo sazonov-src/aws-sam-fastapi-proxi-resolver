@@ -2,32 +2,36 @@ AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 Description: Serverless patterns - Cognito User Pool and Lambda Authorizer (uksb-1tthgi812) (tag:cognito-lambda-authorizer)
 
+Parameters:
+  CognitoUserPool:
+    Type: String
+    Description: Cognito User Pool ARN
+
+  AdministratorsLambdaAuthorizer:
+    Type: String
+    Description: Administrators Lambda Authorizer
+
 Globals:
   Function:
     Runtime: python3.12
-    CodeUri: .
+    CodeUri: src
 
   Api:
     Auth:
       DefaultAuthorizer: CognitoAuthorizer
       Authorizers: 
         CognitoAuthorizer:
-          UserPoolArn: !Ref CognitoAuthorizerUserPoolArn
+          UserPoolArn: !Sub "arn:aws:cognito-idp:${AWS::Region}:${AWS::AccountId}:userpool/${CognitoUserPool}"
           Identity:
             Headers:
               - Authorization
         LambdaAuthorizer:
           FunctionPayloadType: TOKEN
-          FunctionArn: !GetAtt LambdaAuthorizerFunction.Arn
+          FunctionArn: !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${AdministratorsLambdaAuthorizer}"
           Identity:
             Headers:
               - Authorization
     TracingEnabled: true
-
-Parameters:
-  CognitoAuthorizerUserPoolArn:
-    Type: String
-    Description: Cognito User Pool ARN
 
 Resources:
   CustomerFunction:
@@ -44,12 +48,3 @@ Resources:
           Properties:
             Method: any
             Path: /{proxy+}
-
-  LambdaAuthorizerFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      Handler: src/authorizer.handler
-      Timeout: 5
-      MemorySize: 128
-      Policies:
-        - AWSLambdaBasicExecutionRole
