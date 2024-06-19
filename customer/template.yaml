@@ -22,9 +22,6 @@ Globals:
           Identity:
             Headers:
               - Authorization
-    AccessLogSetting:
-      DestinationArn: !GetAtt AccessLogs.Arn
-      Format: '{ "requestId":"$context.requestId", "ip": "$context.identity.sourceIp", "requestTime":"$context.requestTime", "httpMethod":"$context.httpMethod","routeKey":"$context.routeKey", "status":"$context.status","protocol":"$context.protocol", "integrationStatus": $context.integrationStatus, "integrationLatency": $context.integrationLatency, "responseLength":"$context.responseLength" }'
     TracingEnabled: true
 
 Parameters:
@@ -39,6 +36,8 @@ Resources:
       Handler: src/index.handler
       Timeout: 10
       MemorySize: 128
+      Policies:
+        - AWSLambdaBasicExecutionRole
       Events:
         Customer:
           Type: Api
@@ -54,25 +53,3 @@ Resources:
       MemorySize: 128
       Policies:
         - AWSLambdaBasicExecutionRole
-
-  AccessLogs:
-    Type: AWS::Logs::LogGroup
-    DependsOn: ApiLoggingRole
-    Properties:
-      RetentionInDays: 30
-      LogGroupName: !Sub "/${AWS::StackName}/APIAccessCustomerLogs"
-
-  ApiLoggingRole:
-    Type: AWS::IAM::Role
-    Properties:
-      AssumeRolePolicyDocument:
-        Version: "2012-10-17"
-        Statement:
-          - Effect: Allow
-            Principal:
-              Service:
-                - apigateway.amazonaws.com
-            Action: "sts:AssumeRole"
-      Path: /
-      ManagedPolicyArns:
-        - arn:aws:iam::aws:policy/service-role/AmazonAPIGatewayPushToCloudWatchLogs
