@@ -6,6 +6,9 @@ s3_prefix = "myapp"
 region = "eu-north-1"
 confirm_changeset = true
 capabilities = "CAPABILITY_IAM CAPABILITY_AUTO_EXPAND"
-image_repositories = []
-disable_rollback = false
 parameter_overrides = "CallbackUrl=\"http://localhost\""
+image_repositories = []
+
+[default.list_stack_outputs.parameters]
+stack_name = "myapp-cognito-H0ONOVL9M30L"
+output = "json"

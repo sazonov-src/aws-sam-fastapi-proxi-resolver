@@ -3,9 +3,13 @@ Transform: AWS::Serverless-2016-10-31
 Description: Serverless patterns - Cognito User Pool and Lambda Authorizer (uksb-1tthgi812) (tag:cognito-lambda-authorizer)
 
 Parameters:
-  CognitoUserPool:
+  CognitoUserPoolId:
     Type: String
     Description: Cognito User Pool ARN
+
+  UserPoolAdminGroupId:
+    Type: String
+    Description: Cognito User Pool Admin Group
 
 Globals:
   Function:
@@ -17,7 +21,7 @@ Globals:
       DefaultAuthorizer: CognitoAuthorizer
       Authorizers: 
         CognitoAuthorizer:
-          UserPoolArn: !Sub "arn:aws:cognito-idp:${AWS::Region}:${AWS::AccountId}:userpool/${CognitoUserPool}"
+          UserPoolArn: !Sub "arn:aws:cognito-idp:${AWS::Region}:${AWS::AccountId}:userpool/${CognitoUserPoolId}"
           Identity:
             Headers:
               - Authorization
@@ -30,6 +34,10 @@ Resources:
       Handler: src/index.handler
       Timeout: 10
       MemorySize: 128
+      Environment:
+        Variables:
+          USER_POOL_ADMIN_GROUP_ID: !Ref UserPoolAdminGroupId
+          USER_POOL_ID: !Ref CognitoUserPoolId
       Policies:
         - AWSLambdaBasicExecutionRole
       Events:

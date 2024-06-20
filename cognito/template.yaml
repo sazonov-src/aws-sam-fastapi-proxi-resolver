@@ -1,24 +1,19 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
-Description: Serverless patterns - Cognito User Pool (uksb-1tthgi812) (tag:cognito-user-pool)
+Description: Serverless patterns -  User Pool (uksb-1tthgi812) (tag:cognito-user-pool)
 
 Parameters:
   CallbackUrl:
     Type: String
     Description: Callback URL
 
-Globals:
-  Function:
-    Runtime: python3.12
-    CodeUri: .
-
 Resources:
   
   #################################################################
-  # Cognito User Pool ##############################################
+  #  User Pool ##############################################
   # ################################################################
 
-  CognitoUserPool:
+  UserPool:
     Type: AWS::Cognito::UserPool
     Properties: 
       UserPoolName: cognito-user-pool-userpool
@@ -27,7 +22,7 @@ Resources:
       AutoVerifiedAttributes:
         - email
 
-  CognitoUserPoolClient:
+  UserPoolClient:
     Type: AWS::Cognito::UserPoolClient
     Properties: 
       AllowedOAuthFlows: 
@@ -42,12 +37,12 @@ Resources:
       ClientName: cognito-user-pool-client
       SupportedIdentityProviders: 
         - COGNITO
-      UserPoolId: !Ref CognitoUserPool
+      UserPoolId: !Ref UserPool
       ExplicitAuthFlows:
         - ALLOW_USER_PASSWORD_AUTH
         - ALLOW_REFRESH_TOKEN_AUTH
 
-  CognitoUserPoolResourceServer:
+  UserPoolResourceServer:
     Type: AWS::Cognito::UserPoolResourceServer
     Properties: 
       Identifier: com.apigw
@@ -55,36 +50,40 @@ Resources:
       Scopes: 
         - ScopeDescription: scope_description
           ScopeName: scope_name
-      UserPoolId: !Ref CognitoUserPool
+      UserPoolId: !Ref UserPool
       
-  CognitoUserPoolDomain:
+  UserPoolDomain:
     Type: AWS::Cognito::UserPoolDomain
     Properties: 
       Domain: !Sub user-pool-domain-${AWS::AccountId}
-      UserPoolId: !Ref CognitoUserPool
+      UserPoolId: !Ref UserPool
 
-  CognitoUserPoolGroup:
+  UserPoolAdminGroup:
     Type: AWS::Cognito::UserPoolGroup
     Properties:
       GroupName: Administrators
       Description: "Administrators group"
-      UserPoolId: !Ref CognitoUserPool
+      UserPoolId: !Ref UserPool
 
 
 Outputs:
 
   HostedUi:
     Description: Hosted UI
-    Value: !Sub "https://${CognitoUserPoolDomain}.auth.${AWS::Region}.amazoncognito.com/login?client_id=${CognitoUserPoolClient}&response_type=token&scope=email+openid+profile&redirect_uri=${CallbackUrl}"
+    Value: !Sub "https://${UserPoolDomain}.auth.${AWS::Region}.amazoncognito.com/login?client_id=${UserPoolClient}&response_type=token&scope=email+openid+profile&redirect_uri=${CallbackUrl}"
 
-  CognitoUserPoolId:
-    Description: Cognito User Pool ID
-    Value: !Ref CognitoUserPool
+  UserPoolAdminGroupId:
+    Description:  User Pool Admin Group ID
+    Value: !Ref UserPoolAdminGroup
 
-  CognitoUserPoolClientId:
-    Description: Cognito User Pool Client ID
-    Value: !Ref CognitoUserPoolClient
+  UserPoolId:
+    Description:  User Pool ID
+    Value: !Ref UserPool
 
-  CognitoUserPoolDomain:
-    Description: Cognito User Pool Domain
-    Value: !Sub "${CognitoUserPoolDomain}.auth.${AWS::Region}.amazoncognito.com"
+  UserPoolClientId:
+    Description:  User Pool Client ID
+    Value: !Ref UserPoolClient
+
+  UserPoolDomain:
+    Description:  User Pool Domain
+    Value: !Sub "${UserPoolDomain}.auth.${AWS::Region}.amazoncognito.com"

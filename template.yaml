@@ -19,4 +19,6 @@ Resources:
     Properties:
       Location: ./users/template.yaml
       Parameters: 
-        CognitoUserPool: !GetAtt cognito.Outputs.CognitoUserPoolId
+        CognitoUserPoolId: !GetAtt cognito.Outputs.UserPoolId
+        UserPoolAdminGroupId: !GetAtt cognito.Outputs.UserPoolAdminGroupId
+
