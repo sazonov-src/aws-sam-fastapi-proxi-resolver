@@ -31,6 +31,8 @@ Resources:
   CustomerFunction:
     Type: AWS::Serverless::Function
     Properties:
+      Architectures:
+        - arm64
       Handler: src/index.handler
       Timeout: 10
       MemorySize: 128
@@ -40,6 +42,7 @@ Resources:
           USER_POOL_ID: !Ref CognitoUserPoolId
       Policies:
         - AWSLambdaBasicExecutionRole
+        - AmazonCognitoPowerUser
       Events:
         Customer:
           Type: Api
